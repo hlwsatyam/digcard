@@ -38,16 +38,16 @@ router.get('/owner/:ownerId', async (req, res) => {
  
  const webpush = require("web-push");
 const { default: axios } = require('axios');
+const PushSubscription = require('../models/PushSubscription');
 
 router.get("/:slug", async (req, res) => {
   try {
     const ip =
-      req.headers["x-forwarded-for"]?.split(",")[0] ||
-      req.socket.remoteAddress;
+       req.ip;
 
     let city = "Unknown";
     let country = "Unknown";
-console.log(ip)
+ 
     if (ip && ip !== "::1" && ip !== "127.0.0.1") {
       const geo = await axios.get(`http://ip-api.com/json/${ip}`);
       city = geo.data.city;
@@ -63,11 +63,7 @@ console.log(ip)
  
 
     if (store.owner && store?.owner?.endpoint) {
-      const paxyload = JSON.stringify({
-        title: "New Store Visit 👀",
-        body: `Your store was visited from ${city}, ${country}`,
-        icon: "/logo.png",
-      });
+   
 
 
  const payload = JSON.stringify({
@@ -172,6 +168,57 @@ router.put('/:storeId/basic', async (req, res) => {
     }
 
     await store.save();
+
+
+
+
+
+
+ 
+   
+
+
+ const payload = JSON.stringify({
+    title: "Yrr Kuch Naya Update hua.",
+    body: `aapka visited Store ${store.name} mai kuch khaash update huyi.`,
+    icon: `${process.env.REACT_APP_API_URL}/file/icon.jpg`, // Small icon
+    image:store?.logo?.url ? `${process.env.REACT_APP_API_URL}/${store.logo.url}`   : `https://static.vecteezy.com/system/resources/previews/020/662/330/non_2x/store-icon-logo-illustration-vector.jpg`, // Large image
+    badge: `${process.env.REACT_APP_API_URL}/file/badge.jpg`, // Badge icon
+    url: `/store/${store.slug}`, // URL to open on click
+    
+  })
+
+  const AllSub=await  PushSubscription.find({
+    pathname : store.slug
+  })
+ 
+
+ if (AllSub && AllSub.length > 0) {
+  for (const s of AllSub) {
+    try {
+      await webpush.sendNotification(
+        {
+          endpoint: s.endpoint,
+          expirationTime: s.expirationTime,
+          keys: s.keys,   // ✅ FIXED
+        },
+        payload
+      );
+      console.log("Notification sent to:", s.endpoint);
+    } catch (err) {
+      console.error("Push error:", err.message);
+    }
+  }
+}
+
+
+ 
+
+
+
+
+
+
     res.json({ success: true, store });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -295,9 +342,7 @@ router.post('/:storeId/products', uploadMultiple, async (req, res) => {
     if (!store) {
       return res.status(404).json({ message: 'Store not found' });
     }
-console.log(req.file)
-console.log(req.body)
-console.log(req.files)
+ 
  
     const { name, description, price, category } = req.body;
     const files = req.files;
@@ -325,6 +370,47 @@ console.log(req.files)
 
     store.products.push(product);
     await store.save();
+
+
+
+
+ const payload = JSON.stringify({
+    title: "Yrr Kuch Naya Product Add hua.",
+    body: `aapka visited Store ${store.name} mai kuch khaash product add huyi.`,
+    icon: `${process.env.REACT_APP_API_URL}/file/icon.jpg`, // Small icon
+    image:store?.logo?.url ? `${process.env.REACT_APP_API_URL}/${store.logo.url}`   : `https://static.vecteezy.com/system/resources/previews/020/662/330/non_2x/store-icon-logo-illustration-vector.jpg`, // Large image
+    badge: `${process.env.REACT_APP_API_URL}/file/badge.jpg`, // Badge icon
+    url: `/store/${store.slug}`, // URL to open on click
+    
+  })
+
+  const AllSub=await  PushSubscription.find({
+    pathname : store.slug
+  })
+ 
+
+ if (AllSub && AllSub.length > 0) {
+  for (const s of AllSub) {
+    try {
+      await webpush.sendNotification(
+        {
+          endpoint: s.endpoint,
+          expirationTime: s.expirationTime,
+          keys: s.keys,   // ✅ FIXED
+        },
+        payload
+      );
+      console.log("Notification sent to:", s.endpoint);
+    } catch (err) {
+      console.error("Push error:", err.message);
+    }
+  }
+}
+
+
+
+
+
 
     res.json({ 
       success: true, 
