@@ -22,6 +22,33 @@ const userSchema = new mongoose.Schema({
     enum: ['admin', 'member'],
     default: 'member'
   },
+
+
+
+  endpoint: {
+      type: String,
+     
+      unique: true, 
+    },
+    expirationTime: {
+      type: Date,
+      default: null,
+    },
+    keys: {
+      p256dh: {
+        type: String,
+       
+      },
+      auth: {
+        type: String,
+       
+      },
+    },
+
+
+
+
+
   phone: {
     type: String,
     trim: true

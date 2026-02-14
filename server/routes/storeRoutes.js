@@ -7,7 +7,8 @@ const path = require('path');
 
 // ============ GET STORE ============
 // Get store by owner (for member dashboard)
-router.get('/owner/:ownerId', async (req, res) => {
+router.get('/store/owner/:ownerId', async (req, res) => {
+  console.log("asdas")
   try {
     const store = await Store.findOne({ owner: req.params.ownerId });
     if (!store) {
@@ -19,10 +20,11 @@ router.get('/owner/:ownerId', async (req, res) => {
   }
 });
 
-// Get store by slug (for customer view)
-router.get('/:slug', async (req, res) => {
+
+router.get('/owner/:ownerId', async (req, res) => {
+  console.log("asdas")
   try {
-    const store = await Store.findOne({ slug: req.params.slug }).populate('owner', 'name');
+    const store = await Store.findOne({ owner: req.params.ownerId });
     if (!store) {
       return res.status(404).json({ message: 'Store not found' });
     }
@@ -31,6 +33,76 @@ router.get('/:slug', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
+
+ 
+ const webpush = require("web-push");
+const { default: axios } = require('axios');
+
+router.get("/:slug", async (req, res) => {
+  try {
+    const ip =
+      req.headers["x-forwarded-for"]?.split(",")[0] ||
+      req.socket.remoteAddress;
+
+    let city = "Unknown";
+    let country = "Unknown";
+console.log(ip)
+    if (ip && ip !== "::1" && ip !== "127.0.0.1") {
+      const geo = await axios.get(`http://ip-api.com/json/${ip}`);
+      city = geo.data.city;
+      country = geo.data.country;
+    }
+
+    const store = await Store.findOne({ slug: req.params.slug }).populate("owner");
+
+    if (!store) {
+      return res.status(404).json({ message: "Store not found" });
+    }
+
+ 
+
+    if (store.owner && store?.owner?.endpoint) {
+      const paxyload = JSON.stringify({
+        title: "New Store Visit 👀",
+        body: `Your store was visited from ${city}, ${country}`,
+        icon: "/logo.png",
+      });
+
+
+ const payload = JSON.stringify({
+    title: "New Store Visit 👀",
+    body: `Your store was visited from ${city}, ${country}`,
+    icon: `${process.env.REACT_APP_API_URL}/file/icon.jpg`, // Small icon
+    image:store?.logo?.url ? `${process.env.REACT_APP_API_URL}/${store.logo.url}`   : `https://static.vecteezy.com/system/resources/previews/020/662/330/non_2x/store-icon-logo-illustration-vector.jpg`, // Large image
+    badge: `${process.env.REACT_APP_API_URL}/file/badge.jpg`, // Badge icon
+    url: `/store/${store.slug}`, // URL to open on click
+    
+  });
+
+
+
+      await webpush.sendNotification({
+       endpoint: store?.owner?.endpoint,
+       expirationTime:store?.owner?.expirationTime,
+       keys:store?.owner?.keys
+      }, payload);
+    }
+
+    res.json(store);
+
+  } catch (error) {
+    console.error("Visit error:", error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+
+
+
+
+
+
 
 // ============ CREATE STORE ============
 router.post('/', async (req, res) => {

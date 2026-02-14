@@ -7,6 +7,13 @@
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
     },
+
+
+{
+  "theme_color": "#0f172a",
+  "background_color": "#0f172a"
+},
+
     {
       "src": "logo192.png",
       "type": "image/png",

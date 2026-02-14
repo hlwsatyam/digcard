@@ -10,7 +10,8 @@ import {
   CrownOutlined,
   LogoutOutlined,
   DashboardOutlined,
-  ShopOutlined
+  ShopOutlined,
+  GlobalOutlined
 } from '@ant-design/icons';
 import { User, Building, Calendar, Store } from 'lucide-react';
 import axios from 'axios';
@@ -36,14 +37,14 @@ const MemberDashboard = () => {
     queryKey: ['store', user._id],
     queryFn: async () => {
       try {
-        const response = await axios.get(`/api/stores/store/owner/${user._id}`);
+        const response = await axios.get(`/api/stores/store/owner/${user?._id}`);
         return response.data;
       } catch (error) {
         return null;
       }
     }
   });
-
+console.log(storeData)
   const handleLogout = () => {
     localStorage.removeItem('user');
     navigate('/login');
@@ -259,6 +260,26 @@ const MemberDashboard = () => {
                     Manage Store
                   </Button>
                 </Link>
+
+
+
+
+          <div className="flex gap-2 w-full sm:w-auto">
+            {storeData?.slug && (
+              <Button 
+                icon={<GlobalOutlined />}
+                onClick={() => window.open(`/store/${storeData.slug}`, '_blank')}
+                className="flex-1 sm:flex-none text-sm"
+                size="middle"
+              >
+                <span className="hidden sm:inline">View Store</span>
+                <span className="sm:hidden">View</span>
+              </Button>
+            )}
+          </div>
+
+
+
               </div>
             ) : (
               <div className="text-center py-6">
