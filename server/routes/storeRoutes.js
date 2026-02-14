@@ -189,7 +189,7 @@ router.put('/:storeId/basic', async (req, res) => {
   })
 
   const AllSub=await  PushSubscription.find({
-    pathname : store.slug
+    pathname : s`/store/${store.slug}`
   })
  
 
@@ -385,7 +385,7 @@ router.post('/:storeId/products', uploadMultiple, async (req, res) => {
   })
 
   const AllSub=await  PushSubscription.find({
-    pathname : store.slug
+    pathname :`/store/${store.slug}`
   })
  
 
